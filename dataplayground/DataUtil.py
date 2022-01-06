@@ -66,11 +66,11 @@ def slidingWindowMultipleArrays(data: numpy.ndarray, windowSize: int, windowOffs
 
 
 def slidingWindow(data: numpy.ndarray, windowSize: int, windowOffset: int):
-    steps = (int)(data.size / windowOffset)
+    steps = (int)(len(data) / windowOffset)
     resultArray = [data[0:windowSize]]
     for i in range(steps - 1):
         windowPos = ((i + 1) * windowOffset)
-        if (windowPos + windowSize >= data.size):
+        if (windowPos + windowSize >= len(data)):
             break
         resultArray = np.concatenate((resultArray, [data[windowPos:(windowPos + windowSize)]]))
 
