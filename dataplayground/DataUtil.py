@@ -1,3 +1,5 @@
+import os
+from datetime import datetime
 from typing import List
 
 import numpy
@@ -7,6 +9,7 @@ import tensorflow as tf
 from numpy import array
 
 from dataplayground.AnomalyDetectorRawData import LayerDefinition
+
 
 def extractUser(filePath):
     ff_raw = pd.read_excel(filePath)
@@ -93,16 +96,18 @@ def findInterestingChunks(user1: numpy.ndarray, user2: numpy.ndarray, chunkSize:
 
     return user1FilterArray, user2FilterArray
 
+
 def calcLatentLength(chunkSize, layerDefinitions: List[LayerDefinition]):
     prevSize = chunkSize
     for i in range((int)((len(layerDefinitions) / 2))):
         currentLayer = layerDefinitions[i]
-        partSum = prevSize / currentLayer.strides[1]
+        partSum = prevSize / currentLayer.strides[0]
         if (round(partSum, 0) < partSum):
             prevSize = round(prevSize + 1, 0)
         else:
             prevSize = partSum
     return prevSize
+
 
 def shapeInput(user1, user2, expandAxis):
     output = [np.expand_dims((user1[0], user2[0]), axis=expandAxis)]
@@ -110,6 +115,7 @@ def shapeInput(user1, user2, expandAxis):
         outStep = [np.expand_dims((user1[i + 1], user2[i + 1]), axis=expandAxis)]
         output = np.concatenate((output, outStep))
     return np.array(output)
+
 
 # def shapeInput(user1, user2):
 #     output = [(user1[0], user2[0])]
@@ -137,10 +143,23 @@ def printStats(chunkSize, epochs, history, normal, layerDefinitions: List[LayerD
                                      val_loss=history.history['val_loss'][epochs - 1], latentLayer=latentLayerSize)
     print(resultString)
 
-WEIGHTS_STORE_PATH='./weights/'
+
+WEIGHTS_STORE_PATH = './weights/'
+
 
 def saveWeights(model, name):
-    model.save_weights(WEIGHTS_STORE_PATH+name)
+    model.save_weights(WEIGHTS_STORE_PATH + name)
+
 
 def loadWeights(model, name):
-    model.load_weights(WEIGHTS_STORE_PATH+name)
+    model.load_weights(WEIGHTS_STORE_PATH + name)
+
+
+plotPath = '..\\plots\\'
+
+
+def savePlot(plot, folder, name):
+    now = datetime.now()
+    name = os.path.join(folder, name + '-' + now.strftime('%d_%m_%Y_%H_%M_%S'))
+    print(f'Plot stored to {name}.png')
+    plot.savefig(os.path.join(plotPath, name))

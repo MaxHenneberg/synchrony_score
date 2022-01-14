@@ -9,7 +9,7 @@ basefolder = '..\\resources'
 targetFolder = 'Prepared_Data'
 
 
-def get_filenames(path: str, pattern: str="*.csv") -> List[str]:
+def get_filenames(path: str, pattern: str = "*.csv") -> List[str]:
     """
     Returns a list of filenames in a path.
 
@@ -22,6 +22,7 @@ def get_filenames(path: str, pattern: str="*.csv") -> List[str]:
     glob_path = os.path.join(f"{path}", pattern)
     file_paths = glob.glob(glob_path)
     return [e.split(os.path.sep)[-1] for e in file_paths]
+
 
 def read_data_as_df(folder: str, columns: List[str]) -> (pd.DataFrame, pd.DataFrame):
     '''
@@ -38,7 +39,7 @@ def read_data_as_df(folder: str, columns: List[str]) -> (pd.DataFrame, pd.DataFr
     dfs_user_one = dict()
     dfs_user_two = dict()
     pathToFolder = os.path.join(basefolder, folder)
-    file_names = get_filenames(pathToFolder) #file_names_list(folder)
+    file_names = get_filenames(pathToFolder)  # file_names_list(folder)
     for fname in file_names:
         df = pd.read_csv(os.path.join(pathToFolder, fname), usecols=columns)
         # Find user id in filename: "User Study 1 - User 1 - Intro.csv"      
@@ -54,7 +55,8 @@ def read_data_as_df(folder: str, columns: List[str]) -> (pd.DataFrame, pd.DataFr
     return dfs_user_one, dfs_user_two
 
 
-def create_excel_study_summary(sourceFolder: str, summaryName: str, columns: List[str], merge_and_clean: Callable) -> None:
+def create_excel_study_summary(sourceFolder: str, summaryName: str, columns: List[str],
+                               merge_and_clean: Callable) -> None:
     """
     Create excel file summary for the given folder.
     
@@ -69,16 +71,29 @@ def create_excel_study_summary(sourceFolder: str, summaryName: str, columns: Lis
             frame, timestamp, user_one_datatypeX, user_two_datatypeX
     """
     dfs_user_one, dfs_user_two = read_data_as_df(sourceFolder, columns)
-    xls_writer = pd.ExcelWriter(os.path.join(os.path.join(basefolder, targetFolder), f"{summaryName}.xlsx"), engine="xlsxwriter")
+    xls_writer = pd.ExcelWriter(os.path.join(os.path.join(basefolder, targetFolder), f"{summaryName}.xlsx"),
+                                engine="xlsxwriter")
     for study_id in sorted(dfs_user_one.keys()):
         print(study_id)
         df_merged = merge_and_clean(dfs_user_one[study_id], dfs_user_two[study_id])
         df_merged.to_excel(xls_writer, sheet_name=f"Study{study_id}")
     xls_writer.save()
     print('Excel Saved')
-  
+
+
 def load_session_data(file_name: str) -> {pd.DataFrame}:
     df_dict = dict()
-    for study in range(1,11):
-        df_dict[study]= pd.read_excel(os.path.join(os.path.join(basefolder, targetFolder), f"{file_name}.xlsx"), sheet_name = f"Study{study}", index_col=0)
+    for study in [1, 2, 3, 5, 6, 7, 8, 9, 10]:
+        df_dict[study] = pd.read_excel(os.path.join(os.path.join(basefolder, targetFolder), f"{file_name}.xlsx"),
+                                       sheet_name=f"Study{study}", index_col=0)
     return df_dict
+
+
+def collectUserData(excelFile, processUser1, processUser2):
+    excel = load_session_data(excelFile)
+    user1Data = list()
+    user2Data = list()
+    for sheet in excel:
+        user1Data.append(processUser1(excel[sheet]))
+        user2Data.append(processUser2(excel[sheet]))
+    return user1Data, user2Data

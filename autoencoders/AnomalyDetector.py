@@ -8,15 +8,16 @@ class AnomalyDetector(Model):
         super(AnomalyDetector, self).__init__()
 
         self.encoder = tf.keras.Sequential([
-            layers.Dense(chunkSize, activation="relu"),
-            layers.Dense(64, activation="relu"),
-            layers.Dense(16, activation="relu")]
+            layers.Flatten(),
+            layers.Dense(chunkSize, activation="linear"),
+            layers.Dense(32, activation="linear"),
+            layers.Dense(16, activation="linear")]
         )
 
         self.decoder = tf.keras.Sequential([
-            layers.Dense(16, activation="relu"),
-            layers.Dense(64, activation="relu"),
-            layers.Dense(chunkSize, activation="relu")])
+            layers.Dense(16, activation="linear"),
+            layers.Dense(32, activation="linear"),
+            layers.Dense(chunkSize, activation="linear")])
 
     def call(self, x):
         encoded = self.encoder(x)

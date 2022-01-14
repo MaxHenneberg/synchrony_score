@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from matplotlib import pyplot as plt
 
 from autoencoders.ConvolutionalAutoEncoder import LayerDefinition, ConvolutionalAutoEncoder
 from dataplayground import DataUtil
@@ -8,10 +9,10 @@ from sklearn.model_selection import train_test_split
 
 chunkSize = 256
 epochs = 60
-layerDefinitions = [LayerDefinition(32, (1, 8), 'relu', 'same', (1, 4)),
-                    LayerDefinition(2, (1, 4), 'relu', 'same', (1, 4)),
-                    LayerDefinition(2, (1, 4), 'relu', 'same', (1, 4)),
-                    LayerDefinition(32, (1, 8), 'relu', 'same', (1, 4))]
+layerDefinitions = [LayerDefinition(32, (8, 1), 'relu', 'same', (4, 1)),
+                    LayerDefinition(2, (4, 1), 'relu', 'same', (2, 1)),
+                    LayerDefinition(2, (4, 1), 'relu', 'same', (2, 1)),
+                    LayerDefinition(32, (8, 1), 'relu', 'same', (4, 1))]
 showLatentLayer = True
 
 autoencoder = ConvolutionalAutoEncoder(chunkSize, layerDefinitions)
@@ -82,11 +83,9 @@ for sheet in batchedInput:
     trainData1, testData1 = train_test_split(sheet[0], test_size=0.2, random_state=21)
     trainDataUser1List.append(trainData1)
     testDataUser1List.append(testData1)
-    trainData2, testData2 = train_test_split(sheet[0], test_size=0.2, random_state=21)
+    trainData2, testData2 = train_test_split(sheet[1], test_size=0.2, random_state=21)
     trainDataUser2List.append(trainData2)
     testDataUser2List.append(testData2)
-
-print(np.array(trainDataUser1List[0]).shape)
 
 
 def mergeDataLists(dataList1, dataList2):
@@ -125,10 +124,23 @@ for sheet in combinedTestData:
     for entry in sheet:
         allTestData.append(entry)
 
-print(allTrainData)
+def toPlot(data):
+    plot = list()
+    for j in range(len(data)):
+        plot.append((data[j][0][0], data[j][1][0]))
+    return plot
 
 autoencoder.compile(optimizer='adam', loss='mae')
 history = autoencoder.fit(allTrainData, allTrainData,
                           epochs=epochs,
                           validation_data=(allTestData, allTestData),
                           shuffle=True, verbose=True)
+
+reconstruction = autoencoder.predict(allTestData)
+fig, axs = plt.subplots(10)
+for i in range(5):
+    axs[2*i].set_ylim([0, 1])
+    axs[2*i].plot(np.arange(256), toPlot(allTestData[i]))
+    axs[(2*i)+1].set_ylim([0, 1])
+    axs[(2*i)+1].plot(np.arange(256), toPlot(reconstruction[i]))
+plt.show()
