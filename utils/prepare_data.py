@@ -81,19 +81,26 @@ def create_excel_study_summary(sourceFolder: str, summaryName: str, columns: Lis
     print('Excel Saved')
 
 
-def load_session_data(file_name: str) -> {pd.DataFrame}:
+def load_session_data(folder, file_name: str, studies) -> {pd.DataFrame}:
     df_dict = dict()
-    for study in [1, 2, 3, 5, 6, 7, 8, 9, 10]:
-        df_dict[study] = pd.read_excel(os.path.join(os.path.join(basefolder, targetFolder), f"{file_name}.xlsx"),
+    for study in studies:
+        df_dict[study] = pd.read_excel(os.path.join(folder, f"{file_name}.xlsx"),
                                        sheet_name=f"Study{study}", index_col=0)
     return df_dict
 
 
 def collectUserData(excelFile, processUser1, processUser2):
-    excel = load_session_data(excelFile)
+    excel = load_session_data(os.path.join(basefolder, targetFolder), excelFile, [1, 2, 3, 5, 6, 7, 8, 9, 10])
     user1Data = list()
     user2Data = list()
     for sheet in excel:
         user1Data.append(processUser1(excel[sheet]))
         user2Data.append(processUser2(excel[sheet]))
     return user1Data, user2Data
+
+def collectExcelData(folder, excelFile, process):
+    excel = load_session_data(folder, excelFile, [0, 1, 2, 3, 4, 5, 6, 7, 8])
+    data = list()
+    for sheet in excel:
+        data.append(process(excel[sheet]))
+    return data

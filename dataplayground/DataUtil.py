@@ -1,4 +1,5 @@
 import os
+import string
 from datetime import datetime
 from typing import List
 
@@ -155,7 +156,8 @@ def loadWeights(model, name):
     model.load_weights(WEIGHTS_STORE_PATH + name)
 
 
-plotPath = '..\\plots\\'
+plotPath = '..\\results\\plots\\'
+dataPath = '..\\results\\data\\'
 
 
 def savePlot(plot, folder, name):
@@ -163,3 +165,20 @@ def savePlot(plot, folder, name):
     name = os.path.join(folder, name + '-' + now.strftime('%d_%m_%Y_%H_%M_%S'))
     print(f'Plot stored to {name}.png')
     plot.savefig(os.path.join(plotPath, name))
+
+
+def saveData(columnNames, data, folder, name):
+    now = datetime.now()
+    path = os.path.join(os.path.join(dataPath, folder), f"{name}-{now.strftime('%d_%m_%Y_%H_%M_%S')}.xlsx")
+    xls_writer = pd.ExcelWriter(
+        path,
+        engine="xlsxwriter")
+    for i, sheet in enumerate(data):
+        dfs = list()
+        for name, column in zip(columnNames, sheet):
+            dfs.append(pd.DataFrame(data=column, columns=[name]))
+
+        df = pd.concat(dfs, axis=1)
+        df.to_excel(xls_writer, sheet_name=f"Study{i}")
+    xls_writer.save()
+    print(f'Data stored to {path}')
