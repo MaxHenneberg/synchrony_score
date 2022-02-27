@@ -3,7 +3,7 @@ import numpy as np
 from pyts.bag_of_words import BagOfWords
 
 from dataplayground import DataUtil
-from dataplayground.BagOfWords import bagOfWordsForSheet, printBow
+from SynchronyScore.BagOfWords import bagOfWordsForSheet
 from utils.prepare_data import collectUserData
 
 windowSize = 8

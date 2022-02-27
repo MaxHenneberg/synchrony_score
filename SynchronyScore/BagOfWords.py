@@ -88,28 +88,57 @@ def bagOfWordsForSheet(bow: BagOfWords, sheet, batchSize, userNumber, sheetNumbe
     print(f'Finished Sheet {sheetNumber} of User {userNumber}')
     return maxColor, bowList
 
-def splitWordsIntoBins(bowList, nBins: int):
-    bins = []
-    for i in range(nBins):
-        bins.append([])
-
+def splitWordsIntoBuckets(bowList, nBuckets: int):
+    buckets = [[] for i in range(nBuckets)]
     for i, word in enumerate(bowList):
-        bin = bins.pop(i % nBins)
+        bin = buckets.pop(i % nBuckets)
         bin.append(word)
-        bins.insert(i % nBins, bin)
+        buckets.insert(i % nBuckets, bin)
 
-    for i in range(nBins):
-        print(f'Bin {i} has size {len(bins[i])}')
+    for i in range(nBuckets):
+        print(f'Bin {i} has size {len(buckets[i])}')
 
-    return bins
+    return buckets
 
 
 
 def bagOfWordsForSheetContinuous(bow: BagOfWords, sheet):
     bowsForSheet = bow.transform([sheet])
-    nBins = bow.word_size // bow.window_step
+    nBuckets = bow.word_size // bow.window_step
 
     # Bow Transform creates a continous amount of words.
-    # Each bin represents another offset and all Words within a bin create the continous signal
-    wordsInBins = splitWordsIntoBins(bowsForSheet[0].split(' '), nBins)
+    # Each bin represents another offset and all Words within a bucket create the continous signal
+    wordsInBins = splitWordsIntoBuckets(bowsForSheet[0].split(' '), nBuckets)
     return wordsInBins
+
+
+def bowForUser(bow, userData):
+    summedWordBinsUser1 = []
+    for i, sheet in enumerate(userData):
+        print(f'Processed Sheet {i} for User 1')
+        wordBinsForSheet = bagOfWordsForSheetContinuous(bow, sheet)
+        summedWordBinsUser1.append(wordBinsForSheet)
+        print(f'Finished Sheet {i} for User 1')
+
+    return summedWordBinsUser1
+
+def bowForTwoUsers(bow: BagOfWords, userData1, userData2):
+    summedWordBucketsUser1 = list()
+    summedWordBucketsUser2 = list()
+    nBuckets = bow.window_size // bow.window_step
+    for i, (u1, u2) in enumerate(zip(userData1, userData2)):
+        mergedSheets = list(np.append(u1, u2))
+        mergedBows = bow.transform([mergedSheets])
+
+        overlap = (bow.window_size-bow.window_step)
+        seperationIdx = (len(u1)//bow.window_step)
+        listOfWords = mergedBows[0].split(' ')
+        user1Words = listOfWords[0:seperationIdx-overlap]
+        user2Words = listOfWords[seperationIdx:]
+        user1Buckets = splitWordsIntoBuckets(user1Words, nBuckets)
+        user2Buckets = splitWordsIntoBuckets(user2Words, nBuckets)
+        summedWordBucketsUser1.append(user1Buckets)
+        summedWordBucketsUser2.append(user2Buckets)
+
+    return (summedWordBucketsUser1, summedWordBucketsUser2)
+

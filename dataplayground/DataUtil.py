@@ -1,6 +1,7 @@
 import os
 import string
 from datetime import datetime
+from pathlib import Path
 from typing import List
 
 import numpy
@@ -159,26 +160,23 @@ def loadWeights(model, name):
 plotPath = '..\\results\\plots\\'
 dataPath = '..\\results\\data\\'
 
+def createDirIfNotExistent(folder):
+    Path(os.path.join(dataPath, folder)).mkdir(parents=True, exist_ok=True)
+    Path(os.path.join(plotPath, folder)).mkdir(parents=True, exist_ok=True)
 
-def savePlot(plot, folder, name):
-    now = datetime.now()
-    name = os.path.join(folder, name + '-' + now.strftime('%d_%m_%Y_%H_%M_%S'))
+def savePlot(plot, folder, name, runId):
+    name = os.path.join(folder, name + '-' + runId)
     print(f'Plot stored to {name}.png')
     plot.savefig(os.path.join(plotPath, name))
 
 
-def saveData(columnNames, data, folder, name):
-    now = datetime.now()
-    path = os.path.join(os.path.join(dataPath, folder), f"{name}-{now.strftime('%d_%m_%Y_%H_%M_%S')}.xlsx")
+def saveData(columnNames, data, folder, name, runId):
+    path = os.path.join(os.path.join(dataPath, folder), f"{name}-{runId}.xlsx")
     xls_writer = pd.ExcelWriter(
         path,
         engine="xlsxwriter")
     for i, sheet in enumerate(data):
-        dfs = list()
-        for name, column in zip(columnNames, sheet):
-            dfs.append(pd.DataFrame(data=column, columns=[name]))
-
-        df = pd.concat(dfs, axis=1)
+        df = pd.DataFrame(data=np.array(sheet).transpose(), columns=columnNames)
         df.to_excel(xls_writer, sheet_name=f"Study{i}")
     xls_writer.save()
     print(f'Data stored to {path}')

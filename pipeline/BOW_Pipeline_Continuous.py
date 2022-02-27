@@ -1,11 +1,16 @@
+from datetime import datetime
+
 import matplotlib.pyplot as plt
 import numpy as np
 from pyts.bag_of_words import BagOfWords
 
+from SynchronyScore.SyncScoreUtils import calcSyncScore, createWordMap, mergeWordMapsForStoring
 from dataplayground import DataUtil
-from dataplayground.BagOfWords import bagOfWordsForSheetContinuous
+from SynchronyScore.BagOfWords import bagOfWordsForSheetContinuous
 from dataplayground.DataUtil import normalizeData
 from utils.prepare_data import collectUserData
+
+runId = datetime.now().strftime('%d_%m_%Y_%H_%M_%S')
 
 windowSize = 8
 wordSize = 8
@@ -36,49 +41,21 @@ for i, sheet in enumerate(user2):
     summedWordBinsUser2.append(wordBinsForSheet)
     print(f'Finished Sheet {i} for User 2')
 
+mergedSheets = list()
+for i, (sheetU1, sheetU2) in enumerate(zip(summedWordBinsUser1, summedWordBinsUser2)):
+    wordMapUser1 = createWordMap(sheetU1[0])
+    wordMapUser2 = createWordMap(sheetU2[0])
+    mergedSheets.append(mergeWordMapsForStoring(wordMapUser1, wordMapUser2))
 
+DataUtil.saveData(["word", "user1Count", "user2Count"], mergedSheets, folder, f'Words-{nBins}-Bins', runId)
 
-def calcSegmentValue(pos, wordSize, user1):
-    sum = 0
-    for i in range(wordSize):
-        if pos + i < len(user1):
-            sum += user1[pos+i]
-
-    # Only interested in Values for User1 (We try to find the Word of User1 in a certain offset in User 2
-    # So if User1 Word does not contain a lot of 0 Values, User2 doesnt aswell
-    return sum / (wordSize)
-
-def calcSyncScore(wordBinsUser1, user1, wordBinsUser2, user2):
-    syncScore = list()
-    for (binsUser1, sheetUser1), (binsUser2, sheetUser2) in zip(zip(wordBinsUser1, user1), zip(wordBinsUser2, user2)):
-        originalBin = binsUser1[0]
-        maxSyncScore = len(binsUser1)
-        syncScoreListForSheet = []
-        for j, word in enumerate(originalBin):
-            syncScoreForWord = 0
-            for x, compareBin in enumerate(binsUser2):
-                if j < len(compareBin):
-                    compareWord = compareBin[j]
-                    if word == compareWord:
-                        percentage = calcSegmentValue(j * wordSize, wordSize, sheetUser1)
-                        syncScoreForWord = max(0, ((maxSyncScore-x) * percentage) / maxSyncScore)
-                        break
-
-            # Add SyncScore for Current Word to List
-            for x in range(wordSize):
-                syncScoreListForSheet.append(syncScoreForWord)
-
-        syncScore.append(syncScoreListForSheet)
-    return syncScore
-
-
-syncScoreU1U2 = calcSyncScore(summedWordBinsUser1, user1, summedWordBinsUser2, user2)
+syncScoreU1U2 = calcSyncScore(summedWordBinsUser1, user1, summedWordBinsUser2, user2, wordSize)
 syncScoreU1U2WithTimeStamp = [[np.arange(len(score)), score] for score in syncScoreU1U2]
-syncScoreU2U1 = calcSyncScore(summedWordBinsUser2, user2, summedWordBinsUser1, user1)
+syncScoreU2U1 = calcSyncScore(summedWordBinsUser2, user2, summedWordBinsUser1, user1, wordSize)
 syncScoreU2U1WithTimeStamp = [[np.arange(len(score)), score] for score in syncScoreU2U1]
 
-DataUtil.saveData(["timestamp", "syncScore"], syncScoreU1U2WithTimeStamp, folder, f'SyncScoreU1U2-{nBins}-Bins')
-DataUtil.saveData(["timestamp", "syncScore"], syncScoreU2U1WithTimeStamp, folder, f'SyncScoreU2U1-{nBins}-Bins')
+DataUtil.saveData(["timestamp", "syncScore"], syncScoreU1U2WithTimeStamp, folder, f'SyncScoreU1U2-{nBins}-Bins', runId)
+DataUtil.saveData(["timestamp", "syncScore"], syncScoreU2U1WithTimeStamp, folder, f'SyncScoreU2U1-{nBins}-Bins', runId)
 
 syncScore = list()
 for s1, s2 in zip(syncScoreU1U2, syncScoreU2U1):
@@ -86,7 +63,7 @@ for s1, s2 in zip(syncScoreU1U2, syncScoreU2U1):
 
 syncScoreWithTimeStamp = [[np.arange(len(score)), score] for score in syncScore]
 
-DataUtil.saveData(["timestamp", "syncScore"], syncScoreWithTimeStamp, folder, f'SyncScore-{nBins}-Bins')
+DataUtil.saveData(["timestamp", "syncScore"], syncScoreWithTimeStamp, folder, f'SyncScore-{nBins}-Bins', runId)
 
 def minMaxColor(value):
     return max(0, min(1, value))
@@ -149,5 +126,5 @@ for s, (sheet, (sheetWordsUser1, sheetWordsUser2)) in enumerate(zip(syncScore, z
                 ax2.text(posInPlot, user2[s][posInPlot] + 0.2, c2, color=word2Color)
 
     plt.tight_layout()
-    DataUtil.savePlot(plt, folder, f'Sheet {s}-{nBins}-Bins')
+    DataUtil.savePlot(plt, folder, f'Sheet {s}-{nBins}-Bins', runId)
 

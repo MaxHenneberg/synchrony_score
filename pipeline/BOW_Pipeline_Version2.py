@@ -3,14 +3,14 @@ import numpy as np
 from pyts.bag_of_words import BagOfWords
 
 from dataplayground import DataUtil
-from dataplayground.BagOfWords import bagOfWordsForSheet, printBow
+from SynchronyScore.BagOfWords import bagOfWordsForSheet
 from utils.prepare_data import collectUserData
 
 windowSize = 8
 wordSize = 8
 batchSize = 256
-folder = 'BOW_CLASSIFIED_TWO_BINS'
-user1, user2 = collectUserData("Eyeblink_Classified", lambda sheet: sheet["User1Blink"],
+folder = 'BOW_RAW_TWO_BINS'
+user1, user2 = collectUserData("Eyeblink_RAW", lambda sheet: sheet["User1Blink"],
                                lambda sheet: sheet["User2Blink"])
 bow = BagOfWords(window_size=windowSize, word_size=wordSize,
                  window_step=windowSize, numerosity_reduction=False, n_bins=2)

@@ -56,5 +56,18 @@ def smile(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
     return pd.concat([df1[" timestamp"], pd.DataFrame(data=df1Merged, columns=["User1Smile"]),
                pd.DataFrame(data=df2Merged, columns=["User2Smile"])], axis=1)
 
+# Additionally considering AU25 for smiles with teeth (https://www.frontiersin.org/articles/10.3389/fpsyg.2017.01374/full)
+def improved_duchenne_smile(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
+    df1Merged = list()
+    for au6, au12, au25 in zip(df1[" AU06_c"], df1[" AU12_r"], df1[" AU25_r"]):
+        df1Merged.append(((au12+au25)/2 if (au6 == 1) else 0))
+
+    df2Merged = list()
+    for au6, au12, au25 in zip(df2[" AU06_c"], df2[" AU12_r"], df2[" AU25_r"]):
+        df2Merged.append(((au12+au25)/2 if (au6 == 1) else 0))
+
+    return pd.concat([df1[" timestamp"], pd.DataFrame(data=df1Merged, columns=["User1Smile"]),
+               pd.DataFrame(data=df2Merged, columns=["User2Smile"])], axis=1)
+
 #   creates a summary xls from all the data in folder "Intro"
-prep.create_excel_study_summary("FF","Smile", [" timestamp", " AU06_c", " AU12_r"], smile)
+prep.create_excel_study_summary("FF","Improved_Duchenne_Smile_2", [" timestamp", " AU06_c", " AU12_r", " AU25_r"], improved_duchenne_smile)
