@@ -1,6 +1,5 @@
+import _thread
 import os
-import string
-from datetime import datetime
 from pathlib import Path
 from typing import List
 
@@ -8,7 +7,6 @@ import numpy
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from numpy import array
 
 from dataplayground.AnomalyDetectorRawData import LayerDefinition
 
@@ -38,15 +36,11 @@ def calcSync(user1, user2):
 def normalizeData(data):
     min_val = tf.reduce_min(data)
     max_val = tf.reduce_max(data)
-
-    data_norm = (data - min_val) / (max_val - min_val)
-
-    return data_norm
-
-
-def normalizeData(data):
-    min_val = tf.reduce_min(data)
-    max_val = tf.reduce_max(data)
+    if min_val == max_val:
+        if min_val > 0:
+            return data // min_val
+        else:
+            return data
 
     data_norm = (data - min_val) / (max_val - min_val)
 
@@ -160,23 +154,38 @@ def loadWeights(model, name):
 plotPath = '..\\results\\plots\\'
 dataPath = '..\\results\\data\\'
 
+
 def createDirIfNotExistent(folder):
     Path(os.path.join(dataPath, folder)).mkdir(parents=True, exist_ok=True)
     Path(os.path.join(plotPath, folder)).mkdir(parents=True, exist_ok=True)
 
-def savePlot(plot, folder, name, runId):
+
+def saveFigure(fig, folder, name, runId):
     name = os.path.join(folder, name + '-' + runId)
+    fig.savefig(os.path.join(plotPath, name))
     print(f'Plot stored to {name}.png')
-    plot.savefig(os.path.join(plotPath, name))
 
 
 def saveData(columnNames, data, folder, name, runId):
+    _thread.start_new_thread(saveDataThread, (columnNames, data, folder, name, runId))
+
+
+def saveDataThread(columnNames, data, folder, name, runId):
     path = os.path.join(os.path.join(dataPath, folder), f"{name}-{runId}.xlsx")
     xls_writer = pd.ExcelWriter(
         path,
         engine="xlsxwriter")
     for i, sheet in enumerate(data):
+        sheetNumber = calcSheetNumber(i)
         df = pd.DataFrame(data=np.array(sheet).transpose(), columns=columnNames)
-        df.to_excel(xls_writer, sheet_name=f"Study{i}")
+        df.to_excel(xls_writer, sheet_name=f"Study{sheetNumber}")
     xls_writer.save()
     print(f'Data stored to {path}')
+
+
+def calcSheetNumber(s):
+    sheetNumber = s + 1
+    # There is no study 4
+    if sheetNumber > 3:
+        sheetNumber = sheetNumber + 1
+    return sheetNumber

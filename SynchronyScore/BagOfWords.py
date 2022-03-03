@@ -95,9 +95,6 @@ def splitWordsIntoBuckets(bowList, nBuckets: int):
         bin.append(word)
         buckets.insert(i % nBuckets, bin)
 
-    for i in range(nBuckets):
-        print(f'Bin {i} has size {len(buckets[i])}')
-
     return buckets
 
 
