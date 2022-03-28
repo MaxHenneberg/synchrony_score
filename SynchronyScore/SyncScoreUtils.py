@@ -188,7 +188,7 @@ def plotSheet(s, sheet, sheetWordsUser1, sheetWordsUser2, user1, user2, axScales
     sheetNumber = calcSheetNumber(s)
     print(f'Start SyncScorePlot S{sheetNumber}')
     fig = plt.figure()
-    fig.set_size_inches(20, 70)
+    fig.set_size_inches(20, 2 * amtOfPlots)
     gs0 = fig.add_gridspec(amtOfPlots, 1)
     for i in range(amtOfPlots):
         subplot = gs0[i].subgridspec(3, 1, hspace=0)

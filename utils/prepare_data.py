@@ -90,7 +90,7 @@ def load_session_data(folder, file_name: str, studies) -> {pd.DataFrame}:
 
 
 def collectUserData(excelFile, processUser1, processUser2):
-    excel = load_session_data(os.path.join(basefolder, targetFolder), excelFile, [1, 2, 3, 5, 6, 7, 8, 9, 10])
+    excel = load_session_data(os.path.join(basefolder, targetFolder), excelFile, [1, 2])
     user1Data = list()
     user2Data = list()
     for sheet in excel:
@@ -104,3 +104,12 @@ def collectExcelData(folder, excelFile, process):
     for sheet in excel:
         data.append(process(excel[sheet]))
     return data
+
+def loadSyncScore(folder, excelFile):
+    df_dict = dict()
+    studies = [1, 2]
+    for study in studies:
+        df_dict[study] = pd.read_excel(os.path.join(folder, f"{excelFile}.xlsx"),
+                                       sheet_name=f"Study{study}", index_col=0)
+
+    return df_dict

@@ -9,5 +9,5 @@ windowStep = 1
 bow = BagOfWords(window_size=windowSize, word_size=wordSize,
                  window_step=windowStep, numerosity_reduction=False, n_bins=nBins, strategy='uniform')
 
-calculateSyncScoreForTimeSeries(bow, "Smile", lambda sheet: sheet["User1Smile"],
-                                lambda sheet: sheet["User2Smile"], lambda data: data, lambda data: data,[[-0.1, 1.5], [-0.1, 1.5], [-0.1, 1.5]], "D_SMILE_R_UNIFORM_GAUSS")
+calculateSyncScoreForTimeSeries(bow, "User_Study", lambda sheet: sheet["User1Smile"],
+                                lambda sheet: sheet["User2Smile"], lambda data: data, lambda data: data,[[-0.1, 1.5], [-0.1, 1.5], [-0.1, 1.5]], "USER_STUDY_SMILE_3")

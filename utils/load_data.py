@@ -69,5 +69,8 @@ def improved_duchenne_smile(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFram
     return pd.concat([df1[" timestamp"], pd.DataFrame(data=df1Merged, columns=["User1Smile"]),
                pd.DataFrame(data=df2Merged, columns=["User2Smile"])], axis=1)
 
+
+
 #   creates a summary xls from all the data in folder "Intro"
-prep.create_excel_study_summary("FF","Improved_Duchenne_Smile_2", [" timestamp", " AU06_c", " AU12_r", " AU25_r"], improved_duchenne_smile)
+# prep.create_excel_study_summary("FF","Improved_Duchenne_Smile_2", [" timestamp", " AU06_c", " AU12_r", " AU25_r"], improved_duchenne_smile)
+prep.create_excel_study_summary("User_Study","User_Study", [" timestamp", " AU06_c", " AU12_r", " AU25_r"], improved_duchenne_smile)
