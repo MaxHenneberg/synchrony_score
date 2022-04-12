@@ -30,11 +30,11 @@ def drawBackground(frameToWriteOn, syncScoreForFrame):
 #     backgroundHeight = int(video_height * syncScore)
 
 
-syncScore = loadSyncScore('..\\results\\data\\USER_STUDY_SMILE',
-                          'SyncScore-USER_STUDY_SMILE-(16, 4, 3, 1)-25_03_2022_12_50_15')[1]['syncScore']
+syncScore = loadSyncScore('..\\results\\data\\User_Study_Eval',
+                          'User_Study_Eval_Study_2-')[1]['SyncScore']
 
-video1 = cv2.VideoCapture('..\\resources\\videos\\1_P1_3MIN.mp4')
-video2 = cv2.VideoCapture('..\\resources\\videos\\1_P2_3MIN.mp4')
+video1 = cv2.VideoCapture('..\\resources\\videos\\3_P1_3MIN.mp4')
+video2 = cv2.VideoCapture('..\\resources\\videos\\3_P2_3MIN.mp4')
 
 slowFactor = 5
 
@@ -47,7 +47,7 @@ nVideoWidth = int(video_width * 0.85) - int(video_width * 0.15)
 font = cv2.FONT_HERSHEY_SIMPLEX
 print(frames1)
 
-out = cv2.VideoWriter('..\\results\\videos\\1_MERGED_H264.mp4', cv2.VideoWriter_fourcc(*"FMP4"), 30,
+out = cv2.VideoWriter('..\\results\\videos\\User_Study_3_With_score.mp4', cv2.VideoWriter_fourcc(*"FMP4"), 30,
                       (nVideoWidth * 2, video_height))
 
 for i in range(frames1):
@@ -57,7 +57,7 @@ for i in range(frames1):
     # drawBackground(frame2, syncScore[i])
     mergedFrame = np.hstack((frame1[0:video_height, int(video_width * 0.15):int(video_width * 0.85)],
                              frame2[0:video_height, int(video_width * 0.15):int(video_width * 0.85)]))
-    # text_update(i, syncScore, mergedFrame)
+    text_update(i, syncScore, mergedFrame)
 
     out.write(mergedFrame)
 

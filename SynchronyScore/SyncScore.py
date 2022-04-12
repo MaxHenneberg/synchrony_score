@@ -3,6 +3,7 @@ import numbers
 import string
 from datetime import datetime
 from typing import Callable
+from timeit import default_timer as timer
 
 import numpy as np
 from pyts.bag_of_words import BagOfWords
@@ -34,7 +35,7 @@ def calculateSyncScoreForTimeSeries(bow: BagOfWords, srcExcel: string, user1GetC
     # Apply Custom Preprocessing to normalized UserData
     user1 = user1PreProcessing(user1)
     user2 = user2PreProcessing(user2)
-
+    start = timer()
     summedWordBinsUser1, summedWordBinsUser2 = bowForTwoUsers(bow, user1, user2)
 
     # Store Words per Study in Excel
@@ -65,16 +66,20 @@ def calculateSyncScoreForTimeSeries(bow: BagOfWords, srcExcel: string, user1GetC
     DataUtil.saveData(["timestamp", "syncScore"], syncScoreU1U2WithTimeStamp, targetFolder,
                       f'SyncScoreU1U2-{targetFolder}-{configSuffix}',
                       runId)
-    # U2->U1
+    # # U2->U1
     DataUtil.saveData(["timestamp", "syncScore"], syncScoreU2U1WithTimeStamp, targetFolder,
                       f'SyncScoreU2U1-{targetFolder}-{configSuffix}',
                       runId)
 
     # Average both SyncScore Directions
+    startMerge = timer()
     syncScore = list()
     for s1, s2 in zip(syncScoreU1U2, syncScoreU2U1):
         syncScore.append((np.array(s1) + np.array(s2)) / 2)
     syncScoreWithTimeStamp = [[np.arange(len(score)), score] for score in syncScore]
+    end = timer()
+    print(f'Merge Took {end - startMerge} time')
+    print(f'Took {end - start} time')
 
     # Store averaged SyncScore
     DataUtil.saveData(["timestamp", "syncScore"], syncScoreWithTimeStamp, targetFolder,

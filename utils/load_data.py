@@ -73,4 +73,4 @@ def improved_duchenne_smile(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFram
 
 #   creates a summary xls from all the data in folder "Intro"
 # prep.create_excel_study_summary("FF","Improved_Duchenne_Smile_2", [" timestamp", " AU06_c", " AU12_r", " AU25_r"], improved_duchenne_smile)
-prep.create_excel_study_summary("User_Study","User_Study", [" timestamp", " AU06_c", " AU12_r", " AU25_r"], improved_duchenne_smile)
+prep.create_excel_study_summary("User_Study_3MIN","User_Study_3MIN", [" timestamp", " AU06_c", " AU12_r", " AU25_r"], improved_duchenne_smile)

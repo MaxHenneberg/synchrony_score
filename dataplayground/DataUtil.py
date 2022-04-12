@@ -189,3 +189,20 @@ def calcSheetNumber(s):
     if sheetNumber > 3:
         sheetNumber = sheetNumber + 1
     return sheetNumber
+
+
+def splitSeriesOverMultipleAxis(data, axs, listOfAxsIdxs, color, labelStr=None, yLim=None):
+    splits = np.split(np.array(data), len(listOfAxsIdxs))
+    prevLen = 0
+    for i, (idx, split) in enumerate(zip(listOfAxsIdxs, splits)):
+        minVal = min(split)
+        maxVal = max(split)
+        if yLim == None:
+            axs.flat[idx].set_ylim([minVal - max(0.1, abs(minVal * 0.05)), maxVal + max(0.1, abs(maxVal * 0.05))])
+        else:
+            axs.flat[idx].set_ylim(yLim)
+        if i == 0:
+            axs.flat[idx].plot(np.arange(len(split)) + prevLen, split, color, label=labelStr)
+        else:
+            axs.flat[idx].plot(np.arange(len(split)) + prevLen, split, color)
+        prevLen = prevLen + len(split)

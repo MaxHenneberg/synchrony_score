@@ -1,6 +1,7 @@
 import _thread
 import cmath
 import math
+from timeit import default_timer as timer
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -19,6 +20,13 @@ def calcOriginWordEnergy(pos, wordSize, user1):
     # Only interested in Values for User1 (We try to find the Word of User1 in a certain offset in User 2
     # So if User1 Word does not contain a lot of 0 Values, User2 doesnt aswell
     return sum / (wordSize)
+
+def calcWordEnergy(word):
+    sum = 0
+    for i in word:
+            sum += ord(i)
+
+    return sum / len(word)
 
 
 def calcSyncScore(wordBinsUser1, user1, wordBinsUser2, user2, windowSize):
@@ -53,6 +61,7 @@ def calcSyncScore(wordBinsUser1, user1, wordBinsUser2, user2, windowSize):
 def calcGaussianScynScore(wordBinsUser1, user1, wordBinsUser2, user2, windowSize, alphabetSize):
     syncScore = list()
     for (binsUser1, sheetUser1), (binsUser2, sheetUser2) in zip(zip(wordBinsUser1, user1), zip(wordBinsUser2, user2)):
+        start = timer()
         originalBin = binsUser1[0]
         maxSyncScore = (len(binsUser1) + 1) * (len(binsUser1) / 2)
         syncScoreListForSheet = list()
@@ -76,6 +85,8 @@ def calcGaussianScynScore(wordBinsUser1, user1, wordBinsUser2, user2, windowSize
                 syncScoreListForSheet.append(syncScoreForWord)
 
         syncScore.append(syncScoreListForSheet)
+        end = timer()
+        print(f'Gaussian one direction took {end-start}')
     return syncScore
 
 
@@ -271,7 +282,7 @@ def createWordToDataMap(wordUser1, wordsUser2, user1, user2, windowSize):
 
 
 def calcVarianz(value, average):
-    return abs(value - average)
+    return math.sqrt(pow((value - average), 2))
 
 
 def createVarianceList(wordToDataMap, windowSize):
@@ -353,7 +364,7 @@ def processWordToDataMapSheet(s, sheet, windowSize, targetFolder, name, runId):
                 varianzeDataList[i] = varianzeDataList[i] + calcVarianz(entry, averageDataList[i])
 
             dataSum = dataSum / len(data)
-            varianze = varianze + abs(dataSum - wordAverage)
+            varianze = varianze + calcVarianz(dataSum, wordAverage)
 
         varianze = round(varianze / len(dataList), 2)
         varianzeDataList = list(np.array(varianzeDataList) / len(dataList))
@@ -404,7 +415,7 @@ def plotComparisonResults(syncScorePerSheet, variancePerSheet, syncSectionsPerSh
     twinHandles, twinLabels = axs1Twin.get_legend_handles_labels()
     mergedLabels = labels + twinLabels
     axs.flat[1].legend(handles + twinHandles, mergedLabels, loc='center left',
-               bbox_to_anchor=(1.13, 0.5))
+                       bbox_to_anchor=(1.13, 0.5))
     # axs1Twin.legend(loc='upper left', bbox_to_anchor=(1, 0.5))
     # axs.flat[1].legend(loc='lower left', bbox_to_anchor=(1, 0.5))
     for (i, mergedSyncValue, mergedVarianceValue, mergedSyncSectionValue, mergedSyncValueNormalized,

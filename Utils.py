@@ -1,10 +1,7 @@
-import tensorflow as tf
-
-5,4,3,2,1
-
-def normalize(data):
-    min_val = tf.reduce_min(data)
-    max_val = tf.reduce_max(data)
-
-    train_data = (data - min_val) / (max_val - min_val)
-    return tf.cast(train_data, tf.float32)
+TUM_BLUE = '#0065BD'
+TUM_BLUE_2 = '#005293'
+TUM_BLUE_3 = '#003359'
+TUM_GREEN = '#A2AD00'
+TUM_ORANGE = '#E37222'
+TUM_ACCENT_GRAY = '#DAD7CB'
+TUM_DARK_GRAY = '#333333'

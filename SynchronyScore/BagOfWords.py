@@ -6,6 +6,7 @@ from pyts.bag_of_words import BagOfWords
 
 from dataplayground import DataUtil
 from dataplayground.DataUtil import normalizeData, slidingWindow
+from timeit import default_timer as timer
 
 
 def calcColorSum(word: str):
@@ -124,8 +125,15 @@ def bowForTwoUsers(bow: BagOfWords, userData1, userData2):
     summedWordBucketsUser2 = list()
     nBuckets = bow.window_size // bow.window_step
     for i, (u1, u2) in enumerate(zip(userData1, userData2)):
+        bowDyad = BagOfWords(window_size=bow.window_size, word_size=bow.word_size,
+                 window_step=bow.window_step, numerosity_reduction=False, n_bins=bow.n_bins, strategy='uniform')
+        start = timer()
         mergedSheets = list(np.append(u1, u2))
-        mergedBows = bow.transform([mergedSheets])
+        startBow = timer()
+        mergedBows = bowDyad.transform([mergedSheets])
+        endBow = timer()
+        print(f'Only Bow took {endBow - startBow} for {i}')
+
 
         overlap = (bow.window_size-bow.window_step)
         seperationIdx = (len(u1)//bow.window_step)
@@ -136,6 +144,8 @@ def bowForTwoUsers(bow: BagOfWords, userData1, userData2):
         user2Buckets = splitWordsIntoBuckets(user2Words, nBuckets)
         summedWordBucketsUser1.append(user1Buckets)
         summedWordBucketsUser2.append(user2Buckets)
+        end = timer()
+        print(f'Bow took {end-start} for {i}')
 
     return (summedWordBucketsUser1, summedWordBucketsUser2)
 
