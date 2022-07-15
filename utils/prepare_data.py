@@ -88,6 +88,7 @@ def load_session_data(folder, file_name: str, studies) -> {pd.DataFrame}:
                                        sheet_name=f"Study{study}", index_col=0)
     return df_dict
 
+
 def load_session_data_general(folder, file_name: str, studies) -> {pd.DataFrame}:
     df_dict = dict()
     for study in studies:
@@ -97,7 +98,7 @@ def load_session_data_general(folder, file_name: str, studies) -> {pd.DataFrame}
 
 
 def collectUserData(excelFile, processUser1, processUser2):
-    excel = load_session_data(os.path.join(basefolder, targetFolder), excelFile, [1, 2, 3])
+    excel = load_session_data(os.path.join(basefolder, targetFolder), excelFile, [1])
     user1Data = list()
     user2Data = list()
     for sheet in excel:

@@ -2,7 +2,9 @@ from timeit import default_timer as timer
 
 import numpy as np
 from dtw import accelerated_dtw
+from matplotlib import pyplot as plt
 
+import Utils
 from dataplayground import DataUtil
 from dataplayground.DataUtil import normalizeData
 from utils.prepare_data import collectUserData
@@ -37,14 +39,14 @@ for studyU1, studyU2 in zip(user1, user2):
     costDiagonal = [0 if (s1[i] == 0 or s2[i] == 0) else rawDiagonal[i] for i in range(len(rawDiagonal))]
     syncScorePerStudy.append(costDiagonal)
 
-# fig, axs = plt.subplots(6, 1, constrained_layout=True)
-# axs.flat[0].plot(np.arange(len(s1) // 2), s1[:len(s1) // 2], Utils.TUM_BLUE)
-# axs.flat[1].plot(np.arange(len(s1) // 2), s2[:len(s1) // 2], Utils.TUM_BLUE)
-# axs.flat[2].plot(np.arange(len(s1) // 2), costDiagonal[:len(s1) // 2], Utils.TUM_GREEN)
-# axs.flat[3].plot(np.arange(len(s1) // 2), s1[len(s1) // 2:], Utils.TUM_BLUE)
-# axs.flat[4].plot(np.arange(len(s1) // 2), s2[len(s1) // 2:], Utils.TUM_BLUE)
-# axs.flat[5].plot(np.arange(len(s1) // 2), costDiagonal[len(s1) // 2:], Utils.TUM_GREEN)
-# plt.show()
+fig, axs = plt.subplots(6, 1, constrained_layout=True)
+axs.flat[0].plot(np.arange(len(s1) // 2), s1[:len(s1) // 2], Utils.TUM_BLUE)
+axs.flat[1].plot(np.arange(len(s1) // 2), s2[:len(s1) // 2], Utils.TUM_BLUE)
+axs.flat[2].plot(np.arange(len(s1) // 2), costDiagonal[:len(s1) // 2], Utils.TUM_GREEN)
+axs.flat[3].plot(np.arange(len(s1) // 2), s1[len(s1) // 2:], Utils.TUM_BLUE)
+axs.flat[4].plot(np.arange(len(s1) // 2), s2[len(s1) // 2:], Utils.TUM_BLUE)
+axs.flat[5].plot(np.arange(len(s1) // 2), costDiagonal[len(s1) // 2:], Utils.TUM_GREEN)
+plt.show()
 
 DataUtil.createDirIfNotExistent(targetFolder)
 for i, mergedSyncScore in enumerate(syncScorePerStudy):

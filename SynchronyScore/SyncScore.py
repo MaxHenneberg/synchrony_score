@@ -10,7 +10,7 @@ from pyts.bag_of_words import BagOfWords
 
 from SynchronyScore.BagOfWords import bowForTwoUsers
 from SynchronyScore.SyncScoreUtils import createWordMap, mergeWordMapsForStoring, calcSyncScore, \
-    plotSyncScore, createWordToDataMap, processWordToDataMap, calcGaussianScynScore, createVarianceList, \
+    plotSyncScore, createWordToDataMap, processWordToDataMap, calcEuclScynScore, createVarianceList, \
     countSyncSections
 from dataplayground import DataUtil
 from dataplayground.DataUtil import normalizeData, createDirIfNotExistent
@@ -46,19 +46,19 @@ def calculateSyncScoreForTimeSeries(bow: BagOfWords, srcExcel: string, user1GetC
         mergedMap = mergeWordMapsForStoring(dict(wordMapUser1), dict(wordMapUser2))
         mergedSheets.append(mergedMap)
 
-    DataUtil.saveData(["word", "user1Count", "user2Count"], mergedSheets, targetFolder,
-                      f'Words-{targetFolder}-{configSuffix}',
-                      runId)
+    # DataUtil.saveData(["word", "user1Count", "user2Count"], mergedSheets, targetFolder,
+    #                   f'Words-{targetFolder}-{configSuffix}',
+    #                   runId)
 
     wordToDataMap = createWordToDataMap(summedWordBinsUser1, summedWordBinsUser2, user1, user2, bow.window_size)
     processWordToDataMap(wordToDataMap, bow.window_size, targetFolder, configSuffix, runId)
 
     # Calculate SyncScore for both directions U1->U2 and U2->U1
-    syncScoreU1U2 = calcGaussianScynScore(summedWordBinsUser1, user1, summedWordBinsUser2, user2, bow.window_size,
-                                          bow.n_bins)
+    syncScoreU1U2 = calcEuclScynScore(summedWordBinsUser1, user1, summedWordBinsUser2, user2, bow.window_size,
+                                      bow.n_bins)
     syncScoreU1U2WithTimeStamp = [[np.arange(len(score)), score] for score in syncScoreU1U2]
-    syncScoreU2U1 = calcGaussianScynScore(summedWordBinsUser2, user2, summedWordBinsUser1, user1, bow.window_size,
-                                          bow.n_bins)
+    syncScoreU2U1 = calcEuclScynScore(summedWordBinsUser2, user2, summedWordBinsUser1, user1, bow.window_size,
+                                      bow.n_bins)
     syncScoreU2U1WithTimeStamp = [[np.arange(len(score)), score] for score in syncScoreU2U1]
 
     # Store Sync Score per Direction
@@ -133,11 +133,11 @@ def calcSyncScoreAndVarianceForComparison(bow: BagOfWords, srcExcel: string, use
     variancePerSheetList = createVarianceList(wordToDataMap, bow.window_size)
 
     # Calculate SyncScore for both directions U1->U2 and U2->U1
-    syncScoreU1U2 = calcGaussianScynScore(summedWordBinsUser1, user1, summedWordBinsUser2, user2, bow.window_size,
-                                          bow.n_bins)
+    syncScoreU1U2 = calcEuclScynScore(summedWordBinsUser1, user1, summedWordBinsUser2, user2, bow.window_size,
+                                      bow.n_bins)
     syncScoreU1U2WithTimeStamp = [[np.arange(len(score)), score] for score in syncScoreU1U2]
-    syncScoreU2U1 = calcGaussianScynScore(summedWordBinsUser2, user2, summedWordBinsUser1, user1, bow.window_size,
-                                          bow.n_bins)
+    syncScoreU2U1 = calcEuclScynScore(summedWordBinsUser2, user2, summedWordBinsUser1, user1, bow.window_size,
+                                      bow.n_bins)
     syncScoreU2U1WithTimeStamp = [[np.arange(len(score)), score] for score in syncScoreU2U1]
 
     # Store Sync Score per Direction

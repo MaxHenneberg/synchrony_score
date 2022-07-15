@@ -98,9 +98,9 @@ for i, (userStudy, bow, dtw, pearson, user1, user2) in enumerate(
     splitSeriesOverMultipleAxis(user1, axs, [0, 3, 6], Utils.TUM_ORANGE, labelStr='User1', yLim=[-0.01, 1.1])
     splitSeriesOverMultipleAxis(user2, axs, [0, 3, 6], Utils.TUM_DARK_GRAY, labelStr='User2', yLim=[-0.01, 1.1])
     splitSeriesOverMultipleAxis(bow, axs, [1, 4, 7], Utils.TUM_GREEN, labelStr='Algorithm', yLim=[-0.01, 1.1])
-    # splitSeriesOverMultipleAxis(userStudy, axs, [2, 7, 12], Utils.TUM_BLUE, labelStr='User Study', yLim=[-0.01, 1.1])
+    splitSeriesOverMultipleAxis(userStudy, axs, [2, 5, 8], Utils.TUM_BLUE, labelStr='User Study', yLim=[-0.01, 1.1])
     # splitSeriesOverMultipleAxis(dtw, axs, [2, 5, 8], Utils.TUM_BLUE_2, labelStr='DTW', yLim=[-0.01, 1.1])
-    splitSeriesOverMultipleAxis(pearson, axs, [2, 5, 8], Utils.TUM_BLUE_3, labelStr='Pearson', yLim=[-0.01, 1.1])
+    # splitSeriesOverMultipleAxis(pearson, axs, [2, 5, 8], Utils.TUM_BLUE_3, labelStr='Pearson', yLim=[-0.01, 1.1])
     # axs.flat[11].legend(['Algorithm', 'User Study', 'DTW', 'Pearson'], loc='lower center')
     allHandles = []
     allLabels = []
@@ -114,4 +114,4 @@ for i, (userStudy, bow, dtw, pearson, user1, user2) in enumerate(
     # axs.flat[15].legend(leg)
     # leg.set_in_Layout(True)
     # fig.tight_layout(h_pad=0.05)
-    DataUtil.saveFigure(fig, 'User_Study_Eval', f'Dyad {i + 1}', 'Pearson')
+    DataUtil.saveFigure(fig, 'User_Study_Eval', f'Dyad {i + 1}', 'User_Study')

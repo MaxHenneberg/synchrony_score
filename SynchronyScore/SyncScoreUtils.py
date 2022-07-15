@@ -7,11 +7,13 @@ import numpy as np
 from matplotlib import pyplot as plt
 from pyts.bag_of_words import BagOfWords
 
+import Utils
 from dataplayground import DataUtil
 from dataplayground.DataUtil import normalizeData, calcSheetNumber
 
 
 def calcOriginWordEnergy(pos, wordSize, user1):
+    # return np.sum(user1[pos:pos+wordSize]) / wordSize
     sum = 0
     for i in range(wordSize):
         if pos + i < len(user1):
@@ -21,10 +23,11 @@ def calcOriginWordEnergy(pos, wordSize, user1):
     # So if User1 Word does not contain a lot of 0 Values, User2 doesnt aswell
     return sum / (wordSize)
 
+
 def calcWordEnergy(word):
     sum = 0
     for i in word:
-            sum += ord(i)
+        sum += ord(i)
 
     return sum / len(word)
 
@@ -58,43 +61,49 @@ def calcSyncScore(wordBinsUser1, user1, wordBinsUser2, user2, windowSize):
     return syncScore
 
 
-def calcGaussianScynScore(wordBinsUser1, user1, wordBinsUser2, user2, windowSize, alphabetSize):
+def calcEuclScynScore(wordBinsUser1, user1, wordBinsUser2, user2, windowSize, alphabetSize):
     syncScore = list()
     for (binsUser1, sheetUser1), (binsUser2, sheetUser2) in zip(zip(wordBinsUser1, user1), zip(wordBinsUser2, user2)):
         start = timer()
         originalBin = binsUser1[0]
-        maxSyncScore = (len(binsUser1) + 1) * (len(binsUser1) / 2)
+        # maxSyncScore = (len(binsUser1) + 1) * (len(binsUser1) / 2)
         syncScoreListForSheet = list()
         for j, word in enumerate(originalBin):
             syncScoreForWord = 0
             energyU1 = calcOriginWordEnergy(j * windowSize, windowSize, sheetUser1)
             energyU2 = calcOriginWordEnergy(j * windowSize, windowSize, sheetUser2)
             minEnergy = min(energyU1, energyU2)
-            closeness = 1 - (abs((energyU1 - energyU2)))
+            # closeness = 1 - (abs((energyU1 - energyU2)))
+            amtOffsetWords = len(binsUser2)
             if minEnergy > 0.1:
                 for x, compareBin in enumerate(binsUser2):
                     if j < len(compareBin):
+                        abortCondition = (amtOffsetWords - x) / amtOffsetWords
+                        if syncScoreForWord >= abortCondition:
+                            break
                         compareWord = compareBin[j]
-                        gaussianWordFactor = 1 - calcGaussianWordDistance(word, compareWord, alphabetSize)
-                        syncScoreForWord = syncScoreForWord + max(0,
-                                                                  (len(binsUser2) - x) * gaussianWordFactor * closeness)
+                        energyU2 = calcOriginWordEnergy((j * windowSize) + x, windowSize, sheetUser2)
+                        closeness = 1 - (abs((energyU1 - energyU2)))
+                        euclWordFactor = 1 - calcEuclideanWordDistance(word, compareWord, alphabetSize)
+                        syncScoreForWord = max(syncScoreForWord,
+                                               (abortCondition * euclWordFactor * closeness))
             # Normalize Sync Score
-            syncScoreForWord = syncScoreForWord / maxSyncScore
+            # syncScoreForWord = syncScoreForWord / maxSyncScore
             # Add SyncScore for Current Word to List
             for x in range(windowSize):
                 syncScoreListForSheet.append(syncScoreForWord)
 
         syncScore.append(syncScoreListForSheet)
         end = timer()
-        print(f'Gaussian one direction took {end-start}')
+        print(f'Gaussian one direction took {end - start}')
     return syncScore
 
 
-def calcGaussianWordDistance(word, compareWord, alphabetSize):
+def calcEuclideanWordDistance(word, compareWord, alphabetSize):
     distanceSum = 0
     for c1, c2 in zip(word, compareWord):
         # Normalize Distance per Character
-        charDistance = (abs(ord(c1) - ord(c2))) / alphabetSize
+        charDistance = (abs(ord(c1) - ord(c2))) / (alphabetSize - 1)
         distanceSum = distanceSum + charDistance
     # Normalize distance per Word
     return distanceSum / len(word)
@@ -197,6 +206,7 @@ def plotSheet(s, sheet, sheetWordsUser1, sheetWordsUser2, user1, user2, axScales
     amtOfPlots = len(sheet) // batchSize
     wordsPerBatch = batchSize // bow.window_size
     sheetNumber = calcSheetNumber(s)
+    avaiableColorsForWindows = [Utils.TUM_BLUE, Utils.TUM_ORANGE]
     print(f'Start SyncScorePlot S{sheetNumber}')
     fig = plt.figure()
     fig.set_size_inches(20, 2 * amtOfPlots)
@@ -231,28 +241,42 @@ def plotSheet(s, sheet, sheetWordsUser1, sheetWordsUser2, user1, user2, axScales
             # Plot first Batch of User1
             ax1.plot(np.arange(start + startWord, start + endWord), user1[s][start:end][startWord:endWord],
                      color="C{}".format(j % 2))
+            # ax1.plot(np.arange(start + startWord, start + endWord), user1[s][start:end][startWord:endWord],
+            #          color=Utils.TUM_BLUE)
             # Plot first Batch of User2
             ax2.plot(np.arange(start + startWord, start + endWord), user2[s][start:end][startWord:endWord],
                      color="C{}".format(j % 2))
+            # ax2.plot(np.arange(start + startWord, start + endWord), user2[s][start:end][startWord:endWord],
+            #          color=Utils.TUM_BLUE_3)
 
         startOfWords = (i * wordsPerBatch)
         endOfWords = (i * wordsPerBatch) + wordsPerBatch
+
+
+        wordTimeStamp = [list(), list(), list()]
         for j in range(wordsPerBatch):
             word1 = sheetWordsUser1[0][startOfWords:endOfWords][j]
             # word1Color = wordColorImproved(word1, zeroWordForSheet, bow.n_bins, j, wordsPerBatch)
             word2 = sheetWordsUser2[0][startOfWords:endOfWords][j]
             # word2Color = wordColorImproved(word2, zeroWordForSheet, bow.n_bins, j, wordsPerBatch)
+            wordTimeStamp[0].append(j * bow.window_size)
+            wordTimeStamp[1].append(word1)
+            wordTimeStamp[2].append(word2)
             for cIdx, (c1, c2) in enumerate(zip(word1, word2)):
                 posInPlot = min(start + (j * bow.window_size) + cIdx, len(user1[s]) - 1)
                 ax1.text(posInPlot, user1[s][posInPlot] + 0.2, c1,
-                         color="C{}".format(j % 2))
+                         color=avaiableColorsForWindows[j % 2])
                 ax2.text(posInPlot, user2[s][posInPlot] + 0.2, c2,
-                         color="C{}".format(j % 2))
+                         color=avaiableColorsForWindows[j % 2])
+
+        DataUtil.saveDataThread(["TimeStamp", "User1", "User2"], [wordTimeStamp], "TMP_WORDS",
+                                f'WORDS-{i}', '')
 
     fig.tight_layout()
     DataUtil.saveFigure(fig, targetFolder,
                         f'{targetFolder}-S{sheetNumber}-{name}',
                         runId)
+
     fig.clear()
     print(f'Finished SyncScorePlot S{sheetNumber}')
 
@@ -330,17 +354,23 @@ def processWordToDataMap(wordToDataMap, windowSize, targetFolder, name, runId):
 def processWordToDataMapSheet(s, sheet, windowSize, targetFolder, name, runId):
     sheetNumber = calcSheetNumber(s)
     print(f'Prozess Sheet {sheetNumber} with {len(sheet.keys())} Words')
-    columns = 4
-    numberOfWords = len(sheet.keys())
-    if numberOfWords // 4 < numberOfWords / 4:
-        numberOfRows = numberOfWords // 4 + 1
-    else:
-        numberOfRows = numberOfWords // 4
-    fig, axs = plt.subplots(numberOfRows, columns, constrained_layout=True)
-    fig.suptitle(f'Sheet: {sheetNumber}', fontsize=16)
-    fig.set_size_inches(5 * columns, 5 * numberOfRows)
     sortedKeys = sorted(sheet.keys())
-    for j, word in enumerate(sortedKeys):
+    keysWithEnoughEntries = list()
+    for word in sortedKeys:
+        if(len(sheet[word]) > 10):
+            keysWithEnoughEntries.append(word)
+
+    columns = 4
+    numberOfWords = len(keysWithEnoughEntries)
+    if numberOfWords // columns < numberOfWords / columns:
+        numberOfRows = numberOfWords // columns + 1
+    else:
+        numberOfRows = numberOfWords // columns
+    fig, axs = plt.subplots(numberOfRows, columns, constrained_layout=True)
+    # fig.suptitle(f'Sheet: {sheetNumber}', fontsize=16)
+    fig.set_size_inches(5.5 * columns, 5 * numberOfRows)
+
+    for j, word in enumerate(keysWithEnoughEntries):
         wordSum = 0
         summedDataList = [0 for i in range(windowSize)]
         dataList = sheet[word]
@@ -369,14 +399,15 @@ def processWordToDataMapSheet(s, sheet, windowSize, targetFolder, name, runId):
         varianze = round(varianze / len(dataList), 2)
         varianzeDataList = list(np.array(varianzeDataList) / len(dataList))
 
-        axs.flat[j].set_title(f'{word} (Occurrences: {len(dataList)}, Word Var: {varianze})')
+        axs.flat[j].set_title(f'{word} (Occurrences: {len(dataList)}, Word Var: {varianze})', fontsize=14)
+        axs.flat[j].tick_params(axis='both', which='major', labelsize=14)
         axs.flat[j].set_ylim([-0.2, 1.2])
-        axs.flat[j].plot(np.arange(windowSize), averageDataList)
-        axs.flat[j].errorbar(np.arange(windowSize), averageDataList, yerr=varianzeDataList)
+        axs.flat[j].plot(np.arange(windowSize), averageDataList, Utils.TUM_BLUE)
+        axs.flat[j].errorbar(np.arange(windowSize), averageDataList, ecolor=Utils.TUM_ORANGE, yerr=varianzeDataList)
         for i, (avg, var) in enumerate(zip(averageDataList, varianzeDataList)):
-            axs.flat[j].text(i, avg + var + 0.1, f'{round(avg, 2)}')
+            axs.flat[j].text(i, avg + var + 0.1, f'{round(avg, 2)}', fontsize=16)
         for i, (avg, var) in enumerate(zip(averageDataList, varianzeDataList)):
-            axs.flat[j].text(i, avg - var - 0.1, f'{round(var, 2)}')
+            axs.flat[j].text(i, avg - var - 0.1, f'{round(var, 2)}', fontsize=16)
 
     DataUtil.saveFigure(fig, targetFolder,
                         f'{targetFolder}-S{sheetNumber}-{name}-WordSummary',
@@ -395,21 +426,21 @@ def plotComparisonResults(syncScorePerSheet, variancePerSheet, syncSectionsPerSh
     fig.suptitle('', fontsize=16)
     fig.set_size_inches(10, 30)
     axs.flat[0].set_title(f'Merged Values')
-    axs.flat[0].plot(configValues, mergedSyncScore, label='SyncScore', marker="o", color="C0")
+    axs.flat[0].plot(configValues, mergedSyncScore, label='SyncScore', marker="o", color=Utils.TUM_BLUE)
     axs.flat[0].set_xticks(configValues)
     axs.flat[0].set_xticklabels(configValues)
-    axs.flat[0].plot(configValues, mergedVariance, label='Variance', marker="o", color="C1")
+    axs.flat[0].plot(configValues, mergedVariance, label='Variance', marker="o", color=Utils.TUM_ORANGE)
     axs0Twin = axs.flat[0].twinx()
-    axs0Twin.plot(configValues, mergedSyncSectionsPerRun, label='SyncSection', marker="o", color="C2")
+    axs0Twin.plot(configValues, mergedSyncSectionsPerRun, label='SyncSection', marker="o", color=Utils.TUM_GREEN)
     # axs0Twin.legend(loc='upper left', bbox_to_anchor=(-1, 0.5))
     # axs.flat[0].legend(loc='lower left', bbox_to_anchor=(-1, 0.5))
     axs.flat[1].set_title(f'Merged Values Normalized')
-    axs.flat[1].plot(configValues, mergedSyncScoreNormalized, label='SyncScore', marker="o", color="C0")
+    axs.flat[1].plot(configValues, mergedSyncScoreNormalized, label='SyncScore', marker="o", color=Utils.TUM_BLUE)
     axs.flat[1].set_xticks(configValues)
     axs.flat[1].set_xticklabels(configValues)
-    axs.flat[1].plot(configValues, mergedVarianceNormalized, label='Variance', marker="o", color="C1")
+    axs.flat[1].plot(configValues, mergedVarianceNormalized, label='Variance', marker="o", color=Utils.TUM_ORANGE)
     axs1Twin = axs.flat[1].twinx()
-    axs1Twin.plot(configValues, mergedSyncSectionsNormalized, label='SyncSection', marker="o", color="C2")
+    axs1Twin.plot(configValues, mergedSyncSectionsNormalized, label='SyncSection', marker="o", color=Utils.TUM_GREEN)
 
     handles, labels = axs.flat[1].get_legend_handles_labels()
     twinHandles, twinLabels = axs1Twin.get_legend_handles_labels()
@@ -437,10 +468,10 @@ def plotComparisonResults(syncScorePerSheet, variancePerSheet, syncSectionsPerSh
         axsIdx = 2 * (i + 1)
         sheetNumber = calcSheetNumber(i)
         axs.flat[axsIdx].set_title(f'Sheet: {sheetNumber}')
-        axs.flat[axsIdx].plot(configValues, syncScore, label='SyncScore', marker="o", color="C0")
-        axs.flat[axsIdx].plot(configValues, variance, label='Variance', marker="o", color="C1")
+        axs.flat[axsIdx].plot(configValues, syncScore, label='SyncScore', marker="o", color=Utils.TUM_BLUE)
+        axs.flat[axsIdx].plot(configValues, variance, label='Variance', marker="o", color=Utils.TUM_ORANGE)
         axsTwin0 = axs.flat[axsIdx].twinx()
-        axsTwin0.plot(configValues, syncSection, label='SyncSection', marker="o", color="C2")
+        axsTwin0.plot(configValues, syncSection, label='SyncSection', marker="o", color=Utils.TUM_GREEN)
         axs.flat[axsIdx].set_xticks(configValues)
         axs.flat[axsIdx].set_xticklabels(configValues)
         # axs.flat[axsIdx].legend(loc='upper left', bbox_to_anchor=(-1, 0.5))
@@ -451,10 +482,10 @@ def plotComparisonResults(syncScorePerSheet, variancePerSheet, syncSectionsPerSh
             axsTwin0.text(j, syncSectionValue * 1.03, f'{round(syncSectionValue, 3)}')
 
         axs.flat[axsIdx + 1].set_title(f'Sheet: {sheetNumber} Normalized')
-        axs.flat[axsIdx + 1].plot(configValues, syncScoreValueNormed, label='SyncScore', marker="o", color="C0")
-        axs.flat[axsIdx + 1].plot(configValues, varianceValueNormed, label='Variance', marker="o", color="C1")
+        axs.flat[axsIdx + 1].plot(configValues, syncScoreValueNormed, label='SyncScore', marker="o", color=Utils.TUM_BLUE)
+        axs.flat[axsIdx + 1].plot(configValues, varianceValueNormed, label='Variance', marker="o", color=Utils.TUM_ORANGE)
         axsTwin1 = axs.flat[axsIdx + 1].twinx()
-        axsTwin1.plot(configValues, syncSectionValueNormed, label='SyncSection', marker="o", color="C2")
+        axsTwin1.plot(configValues, syncSectionValueNormed, label='SyncSection', marker="o", color=Utils.TUM_GREEN)
         axs.flat[axsIdx + 1].set_xticks(configValues)
         axs.flat[axsIdx + 1].set_xticklabels(configValues)
         # axs.flat[axsIdx + 1].legend(loc='upper left', bbox_to_anchor=(1, 0.5))

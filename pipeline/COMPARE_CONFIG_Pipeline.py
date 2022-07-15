@@ -7,14 +7,14 @@ from SynchronyScore.SyncScore import calcSyncScoreAndVarianceForComparison
 from SynchronyScore.SyncScoreUtils import plotComparisonResults
 from dataplayground.DataUtil import normalizeData
 
-windowSize = 1
-wordSize = 2
-nBins = 2
+windowSize = 4
+wordSize = 4
+nBins = 1
 windowStep = 1
 
 iterations = 5
-iterationIncrease = 2
-baseTitle = 'WindowSize'
+iterationIncrease = 1
+baseTitle = 'Bins'
 sheetAmount = 9
 
 configSuffix = f'({windowSize}, {wordSize}, {nBins}, {windowStep})'
@@ -28,10 +28,10 @@ variancePerRunPerSheet = list()
 syncSectionPerRunPerSheet = list()
 for i in range(iterations):
     # Increase variable for this run
-    windowSize = windowSize * iterationIncrease
+    nBins = nBins + iterationIncrease
 
-    configValuesPerRun.append(windowSize)
-    print(f'Iteration {i + 1} with Value {windowSize}')
+    configValuesPerRun.append(nBins)
+    print(f'Iteration {i + 1} with Value {nBins}')
 
     bow = BagOfWords(window_size=windowSize, word_size=wordSize,
                      window_step=windowStep, numerosity_reduction=False, n_bins=nBins, strategy='uniform')
@@ -39,7 +39,7 @@ for i in range(iterations):
     # if i == 0 or i == (iterations - 1):
     #     plotResults = True
 
-    syncScoreListPerSheet, variancePerSheet, syncSectionsPerSheet = calcSyncScoreAndVarianceForComparison(bow, "Smile",
+    syncScoreListPerSheet, variancePerSheet, syncSectionsPerSheet = calcSyncScoreAndVarianceForComparison(bow, "Improved_Duchenne_Smile_2",
                                                                                                           lambda sheet:
                                                                                                           sheet[
                                                                                                               "User1Smile"],

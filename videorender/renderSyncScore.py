@@ -8,17 +8,17 @@ def text_update(frameIdx, syncScoreList, frameToWriteOn):
     if frameIdx < len(syncScoreList):
         _syncScore = round(syncScoreList[frameIdx], 2)
         if _syncScore > 0.5:
-            cv2.putText(frameToWriteOn, str(_syncScore), (nVideoWidth, video_height // 2), font, 1.5,
-                        (255, 255, 255), 2,
-                        cv2.LINE_4)
+            cv2.putText(frameToWriteOn, str(_syncScore), (nVideoWidth, video_height // 2), font, 4,
+                        (0, 0, 255), 6,
+                        cv2.LINE_8)
         else:
-            cv2.putText(frameToWriteOn, str(_syncScore), (nVideoWidth, video_height // 2), font, 1.5,
-                        (255, 255, 255), 2,
-                        cv2.LINE_4)
+            cv2.putText(frameToWriteOn, str(_syncScore), (nVideoWidth, video_height // 2), font, 4,
+                        (0, 0, 255), 6,
+                        cv2.LINE_8)
     else:
-        cv2.putText(frameToWriteOn, '0', (nVideoWidth, video_height // 2), font, 1.5,
-                    (255, 255, 255), 2,
-                    cv2.LINE_4)
+        cv2.putText(frameToWriteOn, '0', (nVideoWidth, video_height // 2), font, 4,
+                    (0, 0, 255), 6,
+                    cv2.LINE_8)
 
 
 def drawBackground(frameToWriteOn, syncScoreForFrame):
@@ -30,11 +30,11 @@ def drawBackground(frameToWriteOn, syncScoreForFrame):
 #     backgroundHeight = int(video_height * syncScore)
 
 
-syncScore = loadSyncScore('..\\results\\data\\User_Study_Eval',
-                          'User_Study_Eval_Study_2-')[1]['SyncScore']
+syncScore = loadSyncScore('..\\results\\data\\User_Study_3MIN_NEW_ALGO',
+                          'SyncScore-User_Study_3MIN_NEW_ALGO-(8, 4, 3, 1)-14_04_2022_10_49_21')[1]['syncScore']
 
-video1 = cv2.VideoCapture('..\\resources\\videos\\3_P1_3MIN.mp4')
-video2 = cv2.VideoCapture('..\\resources\\videos\\3_P2_3MIN.mp4')
+video1 = cv2.VideoCapture('..\\resources\\videos\\1_P1_3MIN.mp4')
+video2 = cv2.VideoCapture('..\\resources\\videos\\1_P2_3MIN.mp4')
 
 slowFactor = 5
 
@@ -47,7 +47,7 @@ nVideoWidth = int(video_width * 0.85) - int(video_width * 0.15)
 font = cv2.FONT_HERSHEY_SIMPLEX
 print(frames1)
 
-out = cv2.VideoWriter('..\\results\\videos\\User_Study_3_With_score.mp4', cv2.VideoWriter_fourcc(*"FMP4"), 30,
+out = cv2.VideoWriter('..\\results\\videos\\User_Study_3MIN_BIGGER_FONT.mp4', cv2.VideoWriter_fourcc(*"FMP4"), 30,
                       (nVideoWidth * 2, video_height))
 
 for i in range(frames1):
